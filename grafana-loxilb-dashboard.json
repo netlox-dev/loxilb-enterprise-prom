@@ -411,7 +411,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -444,7 +444,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_bytes_total[1m])",
+          "expr": "rate(processed_bytes_total[1m]) * 8",
           "legendFormat": "Total Bandwidth",
           "refId": "A"
         },
@@ -453,7 +453,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_tcp_bytes[1m])",
+          "expr": "rate(processed_tcp_bytes[1m]) * 8",
           "legendFormat": "TCP",
           "refId": "B"
         },
@@ -462,7 +462,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_udp_bytes[1m])",
+          "expr": "rate(processed_udp_bytes[1m]) * 8",
           "legendFormat": "UDP",
           "refId": "C"
         },
@@ -471,7 +471,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_sctp_bytes[1m])",
+          "expr": "rate(processed_sctp_bytes[1m]) * 8",
           "legendFormat": "SCTP",
           "refId": "D"
         }
@@ -1150,7 +1150,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -1183,7 +1183,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(service_traffic_bytes[1m]))",
+          "expr": "topk(10, rate(service_traffic_bytes[1m]) * 8)",
           "legendFormat": "{{service}}",
           "refId": "A"
         }
@@ -1415,7 +1415,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -1448,7 +1448,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(endpoint_traffic_bytes{service=~\"$service\"}[1m])) by (dip)",
+          "expr": "sum(rate(endpoint_traffic_bytes{service=~\"$service\"}[1m]) * 8) by (dip)",
           "legendFormat": "{{dip}}",
           "refId": "A"
         }
@@ -1820,7 +1820,7 @@
               "type": "linear"
             }
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -1932,7 +1932,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -2164,7 +2164,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) * 8 / rate(lb_rule_interaction_packets{service=~\"$service\"}[1m]))",
+          "expr": "topk(10, rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) / rate(lb_rule_interaction_packets{service=~\"$service\"}[1m]))",
           "legendFormat": "{{sip}} \u2192 {{dip}}",
           "refId": "A"
         }
@@ -2191,7 +2191,7 @@
             }
           },
           "mappings": [],
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -2285,12 +2285,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Bandwidth (Bps)"
+              "options": "Bandwidth (bps)"
             },
             "properties": [
               {
                 "id": "unit",
-                "value": "Bps"
+                "value": "bps"
               },
               {
                 "id": "custom.cellOptions",
@@ -2347,7 +2347,7 @@
         "sortBy": [
           {
             "desc": true,
-            "displayName": "Bandwidth (Bps)"
+            "displayName": "Bandwidth (bps)"
           }
         ]
       },
@@ -2399,7 +2399,7 @@
               "Value #B": 4
             },
             "renameByName": {
-              "Value #A": "Bandwidth (Bps)",
+              "Value #A": "Bandwidth (bps)",
               "Value #B": "Packet Rate (pps)",
               "dip": "Endpoint IP",
               "service": "Service",
@@ -2412,10 +2412,27 @@
           "options": {
             "alias": "Avg Packet Size",
             "binary": {
-              "left": "Bandwidth (Bps)",
+              "left": "Bandwidth (bps)",
               "operator": "/",
               "reducer": "sum",
               "right": "Packet Rate (pps)"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Avg Packet Size (bytes)",
+            "binary": {
+              "left": "Avg Packet Size",
+              "operator": "/",
+              "reducer": "sum",
+              "right": 8
             },
             "mode": "binary",
             "reduce": {
@@ -2445,7 +2462,7 @@
             }
           },
           "mappings": [],
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
@@ -2458,7 +2475,7 @@
       "id": 27,
       "options": {
         "edges": {
-          "mainStatUnit": "Bps"
+          "mainStatUnit": "bps"
         },
         "nodes": {
           "mainStatUnit": ""
@@ -2471,7 +2488,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(50, rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) * 8)",
+          "expr": "sum(rate(lb_rule_interaction_bytes{service=~\"$service\", dip=~\"$endpoint\"}[1m]) * 8) by (dip, sip)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2481,14 +2498,22 @@
       "title": "Client-Endpoint Network Graph (Top 50 Flows)",
       "transformations": [
         {
+          "id": "labelsToFields",
+          "options": {
+            "keepTime": false,
+            "mode": "columns",
+            "valueLabel": "Value"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true,
-              "service": true
+              "Time": true
             },
             "indexByName": {
               "sip": 0,
@@ -2496,10 +2521,42 @@
               "Value": 2
             },
             "renameByName": {
-              "Value": "bandwidth",
+              "sip": "source",
               "dip": "target",
-              "sip": "source"
+              "Value": "mainstat"
             }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "id",
+            "mode": "index"
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "string",
+                "targetField": "id"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "id": 0,
+              "source": 1,
+              "target": 2,
+              "mainstat": 3
+            },
+            "renameByName": {}
           }
         }
       ],
@@ -2556,7 +2613,7 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "bps"
         },
         "overrides": []
       },
