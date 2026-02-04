@@ -30,7 +30,10 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
       - GF_SERVER_ROOT_URL=http://grafana.example.com
+      # Force Grafana to respect reverse-proxy headers
+      - GF_SERVER_ENABLE_GZIP=true
     ports:
       - "3000:3000"
     networks:
