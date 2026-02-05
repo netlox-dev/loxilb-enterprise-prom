@@ -93,7 +93,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "system_cpu_utilization",
+          "expr": "system_cpu_utilization{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -158,7 +158,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "system_memory_utilization",
+          "expr": "system_memory_utilization{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -223,7 +223,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "system_disk_utilization",
+          "expr": "system_disk_utilization{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -313,8 +313,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "active_conntrack_count",
-          "legendFormat": "Active Connections",
+          "expr": "active_conntrack_count{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Active Connections",
           "refId": "A"
         },
         {
@@ -322,8 +322,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "active_flow_count_tcp",
-          "legendFormat": "TCP Flows",
+          "expr": "active_flow_count_tcp{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - TCP Flows",
           "refId": "B"
         },
         {
@@ -331,8 +331,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "active_flow_count_udp",
-          "legendFormat": "UDP Flows",
+          "expr": "active_flow_count_udp{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - UDP Flows",
           "refId": "C"
         },
         {
@@ -340,8 +340,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "active_flow_count_sctp",
-          "legendFormat": "SCTP Flows",
+          "expr": "active_flow_count_sctp{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - SCTP Flows",
           "refId": "D"
         }
       ],
@@ -444,8 +444,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_bytes_total[1m]) * 8",
-          "legendFormat": "Total Bandwidth",
+          "expr": "rate(processed_bytes_total{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - Total Bandwidth",
           "refId": "A"
         },
         {
@@ -453,8 +453,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_tcp_bytes[1m]) * 8",
-          "legendFormat": "TCP",
+          "expr": "rate(processed_tcp_bytes{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - TCP",
           "refId": "B"
         },
         {
@@ -462,8 +462,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_udp_bytes[1m]) * 8",
-          "legendFormat": "UDP",
+          "expr": "rate(processed_udp_bytes{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - UDP",
           "refId": "C"
         },
         {
@@ -471,8 +471,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_sctp_bytes[1m]) * 8",
-          "legendFormat": "SCTP",
+          "expr": "rate(processed_sctp_bytes{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - SCTP",
           "refId": "D"
         }
       ],
@@ -562,8 +562,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_packets_total[1m])",
-          "legendFormat": "Total Packets",
+          "expr": "rate(processed_packets_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Total Packets",
           "refId": "A"
         },
         {
@@ -571,8 +571,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_tcp_packets[1m])",
-          "legendFormat": "TCP",
+          "expr": "rate(processed_tcp_packets{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - TCP",
           "refId": "B"
         },
         {
@@ -580,8 +580,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_udp_packets[1m])",
-          "legendFormat": "UDP",
+          "expr": "rate(processed_udp_packets{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - UDP",
           "refId": "C"
         },
         {
@@ -589,8 +589,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(processed_sctp_packets[1m])",
-          "legendFormat": "SCTP",
+          "expr": "rate(processed_sctp_packets{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - SCTP",
           "refId": "D"
         }
       ],
@@ -700,8 +700,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(total_requests[1m])",
-          "legendFormat": "Request Rate",
+          "expr": "rate(total_requests{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Request Rate",
           "refId": "A"
         },
         {
@@ -709,8 +709,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(total_errors[1m])",
-          "legendFormat": "Error Rate",
+          "expr": "rate(total_errors{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Error Rate",
           "refId": "B"
         }
       ],
@@ -808,8 +808,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(total_errors[5m]) / rate(total_requests[5m]) * 100",
-          "legendFormat": "Error Percentage",
+          "expr": "rate(total_errors{instance=~\"$instance\"}[5m]) / rate(total_requests[5m]) * 100",
+          "legendFormat": "{{instance}} - Error Percentage",
           "refId": "A"
         }
       ],
@@ -889,7 +889,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "healthy_endpoints_count",
+          "expr": "healthy_endpoints_count{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -956,7 +956,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "unhealthy_endpoints_count",
+          "expr": "unhealthy_endpoints_count{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -1023,7 +1023,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "healthy_endpoints_count / (healthy_endpoints_count + unhealthy_endpoints_count) * 100",
+          "expr": "healthy_endpoints_count / (healthy_endpoints_count + unhealthy_endpoints_count{instance=~\"$instance\"}) * 100",
           "refId": "A"
         }
       ],
@@ -1092,8 +1092,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(total_requests_per_service[5m]))",
-          "legendFormat": "{{service}}",
+          "expr": "topk(10, rate(total_requests_per_service{instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{instance}} - {{service}}",
           "refId": "A"
         }
       ],
@@ -1183,8 +1183,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(service_traffic_bytes[1m]) * 8)",
-          "legendFormat": "{{service}}",
+          "expr": "topk(10, rate(service_traffic_bytes{instance=~\"$instance\"}[1m]) * 8)",
+          "legendFormat": "{{instance}} - {{service}}",
           "refId": "A"
         }
       ],
@@ -1274,8 +1274,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(5, rate(total_errors_per_service[5m]))",
-          "legendFormat": "{{service}}",
+          "expr": "topk(5, rate(total_errors_per_service{instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{instance}} - {{service}}",
           "refId": "A"
         }
       ],
@@ -1357,8 +1357,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "endpoint_load_dists_per_service{service=~\"$service\"}",
-          "legendFormat": "{{dip}}",
+          "expr": "endpoint_load_dists_per_service{instance=~\"$instance\",service=~\"$service\"} > 0",
+          "legendFormat": "{{instance}} - {{dip}}",
           "refId": "A"
         }
       ],
@@ -1448,8 +1448,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(endpoint_traffic_bytes{service=~\"$service\"}[1m]) * 8) by (dip)",
-          "legendFormat": "{{dip}}",
+          "expr": "sum(rate(endpoint_traffic_bytes{instance=~\"$instance\",service=~\"$service\"}[1m]) * 8) by (instance, dip) > 0",
+          "legendFormat": "{{instance}} - {{dip}}",
           "refId": "A"
         }
       ],
@@ -1539,8 +1539,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(20, sum(rate(client_traffic_packets{service=~\"$service\"}[1m])) by (sip))",
-          "legendFormat": "{{sip}}",
+          "expr": "topk(20, sum(rate(client_traffic_packets{instance=~\"$instance\",service=~\"$service\"}[1m])) by (instance, sip) > 0)",
+          "legendFormat": "{{instance}} - {{sip}}",
           "refId": "A"
         }
       ],
@@ -1620,7 +1620,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "total_fw_drops",
+          "expr": "total_fw_drops{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -1710,8 +1710,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(total_fw_drops[1m])",
-          "legendFormat": "Firewall Drop Rate",
+          "expr": "rate(total_fw_drops{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Firewall Drop Rate",
           "refId": "A"
         }
       ],
@@ -1781,8 +1781,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, total_fw_drops_per_rule)",
-          "legendFormat": "{{fw_rule}}",
+          "expr": "topk(10, total_fw_drops_per_rule{instance=~\"$instance\"})",
+          "legendFormat": "{{instance}} - {{fw_rule}}",
           "refId": "A"
         }
       ],
@@ -1917,8 +1917,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_syn_blocked_total[1m])",
-          "legendFormat": "SYN Blocked",
+          "expr": "rate(security_syn_blocked_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - SYN Blocked",
           "refId": "A"
         },
         {
@@ -1926,8 +1926,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_syn_passed_total[1m])",
-          "legendFormat": "SYN Passed",
+          "expr": "rate(security_syn_passed_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - SYN Passed",
           "refId": "B"
         }
       ],
@@ -1995,7 +1995,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "security_syn_cookies_total",
+          "expr": "security_syn_cookies_total{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -2063,7 +2063,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "security_unique_ips",
+          "expr": "security_unique_ips{instance=~\"$instance\"}",
           "refId": "A"
         }
       ],
@@ -2200,8 +2200,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_conn_blocked_total[1m])",
-          "legendFormat": "Conn Blocked",
+          "expr": "rate(security_conn_blocked_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Conn Blocked",
           "refId": "A"
         },
         {
@@ -2209,8 +2209,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_conn_passed_total[1m])",
-          "legendFormat": "Conn Passed",
+          "expr": "rate(security_conn_passed_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Conn Passed",
           "refId": "B"
         },
         {
@@ -2218,8 +2218,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_concurrent_blocked_total[1m])",
-          "legendFormat": "Concurrent Blocked",
+          "expr": "rate(security_concurrent_blocked_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - Concurrent Blocked",
           "refId": "C"
         }
       ],
@@ -2341,8 +2341,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_udp_blocked_total[1m])",
-          "legendFormat": "UDP Blocked",
+          "expr": "rate(security_udp_blocked_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - UDP Blocked",
           "refId": "A"
         },
         {
@@ -2350,8 +2350,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_udp_passed_total[1m])",
-          "legendFormat": "UDP Passed",
+          "expr": "rate(security_udp_passed_total{instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{instance}} - UDP Passed",
           "refId": "B"
         }
       ],
@@ -2473,8 +2473,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_udp_bytes_blocked_total[1m]) * 8",
-          "legendFormat": "UDP Bytes Blocked",
+          "expr": "rate(security_udp_bytes_blocked_total{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - UDP Bytes Blocked",
           "refId": "A"
         },
         {
@@ -2482,8 +2482,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(security_udp_bytes_passed_total[1m]) * 8",
-          "legendFormat": "UDP Bytes Passed",
+          "expr": "rate(security_udp_bytes_passed_total{instance=~\"$instance\"}[1m]) * 8",
+          "legendFormat": "{{instance}} - UDP Bytes Passed",
           "refId": "B"
         }
       ],
@@ -2605,8 +2605,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(ipfilter_blacklist_packets_total[1m]))",
-          "legendFormat": "Blacklist Blocked",
+          "expr": "sum(rate(ipfilter_blacklist_packets_total{instance=~\"$instance\"}[1m]))",
+          "legendFormat": "{{instance}} - Blacklist Blocked",
           "refId": "A"
         },
         {
@@ -2614,8 +2614,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(ipfilter_whitelist_packets_total[1m]))",
-          "legendFormat": "Whitelist Allowed",
+          "expr": "sum(rate(ipfilter_whitelist_packets_total{instance=~\"$instance\"}[1m]))",
+          "legendFormat": "{{instance}} - Whitelist Allowed",
           "refId": "B"
         }
       ],
@@ -2737,8 +2737,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(ipfilter_blacklist_bytes_total[1m])) * 8",
-          "legendFormat": "Blacklist Bytes Blocked",
+          "expr": "sum(rate(ipfilter_blacklist_bytes_total{instance=~\"$instance\"}[1m])) * 8",
+          "legendFormat": "{{instance}} - Blacklist Bytes Blocked",
           "refId": "A"
         },
         {
@@ -2746,8 +2746,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(ipfilter_whitelist_bytes_total[1m])) * 8",
-          "legendFormat": "Whitelist Bytes Allowed",
+          "expr": "sum(rate(ipfilter_whitelist_bytes_total{instance=~\"$instance\"}[1m])) * 8",
+          "legendFormat": "{{instance}} - Whitelist Bytes Allowed",
           "refId": "B"
         }
       ],
@@ -2809,8 +2809,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(ipfilter_blacklist_packets_total[5m]))",
-          "legendFormat": "{{cidr}} (P{{priority}})",
+          "expr": "topk(10, rate(ipfilter_blacklist_packets_total{instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{instance}} - {{cidr}} (P{{priority}})",
           "refId": "A"
         }
       ],
@@ -2878,8 +2878,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "ipfilter_total_rules",
-          "legendFormat": "{{type}}",
+          "expr": "ipfilter_total_rules{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - {{type}}",
           "refId": "A"
         }
       ],
@@ -2951,8 +2951,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "100 * (rate(security_syn_blocked_total[5m]) + rate(security_conn_blocked_total[5m]) + rate(security_udp_blocked_total[5m])) / (rate(security_syn_blocked_total[5m]) + rate(security_syn_passed_total[5m]) + rate(security_conn_blocked_total[5m]) + rate(security_conn_passed_total[5m]) + rate(security_udp_blocked_total[5m]) + rate(security_udp_passed_total[5m]) + 1)",
-          "legendFormat": "Block Rate %",
+          "expr": "100 * (rate(security_syn_blocked_total{instance=~\"$instance\"}[5m]) + rate(security_conn_blocked_total[5m]) + rate(security_udp_blocked_total[5m])) / (rate(security_syn_blocked_total[5m]) + rate(security_syn_passed_total[5m]) + rate(security_conn_blocked_total[5m]) + rate(security_conn_passed_total[5m]) + rate(security_udp_blocked_total[5m]) + rate(security_udp_passed_total[5m]) + 1)",
+          "legendFormat": "{{instance}} - Block Rate %",
           "refId": "A"
         }
       ],
@@ -3043,8 +3043,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "security_syn_blocked_total + security_conn_blocked_total + security_concurrent_blocked_total + security_udp_blocked_total",
-          "legendFormat": "Total Blocked",
+          "expr": "security_syn_blocked_total + security_conn_blocked_total + security_concurrent_blocked_total + security_udp_blocked_total{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Total Blocked",
           "refId": "A"
         },
         {
@@ -3052,8 +3052,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "security_syn_passed_total + security_conn_passed_total + security_udp_passed_total",
-          "legendFormat": "Total Passed",
+          "expr": "security_syn_passed_total + security_conn_passed_total + security_udp_passed_total{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Total Passed",
           "refId": "B"
         }
       ],
@@ -3143,9 +3143,9 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) * 8) by (sip, dip)",
+          "expr": "sum(rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\"}[1m]) * 8) by (instance, sip, dip) > 0",
           "format": "time_series",
-          "legendFormat": "{{sip}} \u2192 {{dip}}",
+          "legendFormat": "{{instance}} - {{sip}} → {{dip}}",
           "refId": "A"
         }
       ],
@@ -3239,8 +3239,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(20, rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) * 8)",
-          "legendFormat": "{{sip}} \u2192 {{dip}}",
+          "expr": "topk(20, rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\"}[1m]) * 8)",
+          "legendFormat": "{{instance}} - {{sip}} → {{dip}}",
           "refId": "A"
         }
       ],
@@ -3334,8 +3334,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(20, rate(lb_rule_interaction_packets{service=~\"$service\"}[1m]))",
-          "legendFormat": "{{sip}} \u2192 {{dip}}",
+          "expr": "topk(20, rate(lb_rule_interaction_packets{instance=~\"$instance\",service=~\"$service\"}[1m]))",
+          "legendFormat": "{{instance}} - {{sip}} → {{dip}}",
           "refId": "A"
         }
       ],
@@ -3435,8 +3435,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(10, rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) / rate(lb_rule_interaction_packets{service=~\"$service\"}[1m]))",
-          "legendFormat": "{{sip}} \u2192 {{dip}}",
+          "expr": "topk(10, rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\"}[1m]) / rate(lb_rule_interaction_packets{service=~\"$service\"}[1m]))",
+          "legendFormat": "{{instance}} - {{sip}} → {{dip}}",
           "refId": "A"
         }
       ],
@@ -3507,8 +3507,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "topk(15, sum(rate(lb_rule_interaction_bytes{service=~\"$service\"}[5m]) * 8) by (sip))",
-          "legendFormat": "{{sip}}",
+          "expr": "topk(15, sum(rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\"}[5m]) * 8) by (instance, sip) > 0)",
+          "legendFormat": "{{instance}} - {{sip}}",
           "refId": "A"
         }
       ],
@@ -3629,10 +3629,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(lb_rule_interaction_bytes{service=~\"$service\"}[1m]) * 8",
+          "expr": "rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\"}[1m]) * 8",
           "format": "table",
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{instance}} - __auto",
           "refId": "A"
         },
         {
@@ -3640,10 +3640,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(lb_rule_interaction_packets{service=~\"$service\"}[1m])",
+          "expr": "rate(lb_rule_interaction_packets{instance=~\"$instance\",service=~\"$service\"}[1m])",
           "format": "table",
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{instance}} - __auto",
           "refId": "B"
         }
       ],
@@ -3713,125 +3713,6 @@
         }
       ],
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "description": "Network graph showing client-to-endpoint connections with bandwidth as edge weight",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": [],
-          "unit": "bps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 12,
-        "w": 12,
-        "x": 0,
-        "y": 142
-      },
-      "id": 27,
-      "options": {
-        "edges": {
-          "mainStatUnit": "bps"
-        },
-        "nodes": {
-          "mainStatUnit": ""
-        }
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "expr": "sum(rate(lb_rule_interaction_bytes{service=~\"$service\", dip=~\"$endpoint\"}[1m]) * 8) by (dip, sip)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "title": "Client-Endpoint Network Graph (Top 50 Flows)",
-      "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {
-            "keepTime": false,
-            "mode": "columns",
-            "valueLabel": "Value"
-          }
-        },
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            },
-            "indexByName": {
-              "sip": 0,
-              "dip": 1,
-              "Value": 2
-            },
-            "renameByName": {
-              "sip": "source",
-              "dip": "target",
-              "Value": "mainstat"
-            }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "id",
-            "mode": "index"
-          }
-        },
-        {
-          "id": "convertFieldType",
-          "options": {
-            "conversions": [
-              {
-                "destinationType": "string",
-                "targetField": "id"
-              }
-            ],
-            "fields": {}
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {},
-            "indexByName": {
-              "id": 0,
-              "source": 1,
-              "target": 2,
-              "mainstat": 3
-            },
-            "renameByName": {}
-          }
-        }
-      ],
-      "type": "nodeGraph"
     },
     {
       "datasource": {
@@ -3917,8 +3798,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "sum(rate(lb_rule_interaction_bytes{service=~\"$service\", dip=~\"$endpoint\"}[1m]) * 8) by (dip, sip)",
-          "legendFormat": "Client: {{sip}}",
+          "expr": "sum(rate(lb_rule_interaction_bytes{instance=~\"$instance\",service=~\"$service\", dip=~\"$endpoint\"}[1m]) * 8) by (instance, dip, sip) > 0",
+          "legendFormat": "{{instance}} - Client: {{sip}}",
           "refId": "A"
         }
       ],
@@ -3936,6 +3817,33 @@
   ],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "label_values(active_conntrack_count, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "LoxiLB Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(active_conntrack_count, instance)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
       {
         "current": {
           "selected": false,
@@ -4031,6 +3939,7 @@
   "timezone": "browser",
   "title": "LoxiLB Enterprise - Production Monitoring",
   "uid": "loxilb-enterprise-prod",
-  "version": 1,
-  "weekStart": ""
+  "version": 2,
+  "weekStart": "",
+  "description": "\n\nUpdated for multi-instance support on 2026-02-05 09:04:35"
 }

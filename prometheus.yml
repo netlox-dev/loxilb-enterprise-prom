@@ -11,10 +11,32 @@ scrape_configs:
     scrape_timeout: 5s
     metrics_path: '/netlox/v1/metrics'
     static_configs:
+      # LoxiLB Node 1
       - targets:
-          # - '54.180.113.121:11111'  # Replace with your LoxiLB Enterprise IP and port
-          - '3.36.127.187:11111'  # Replace with your LoxiLB Enterprise IP and port
-          - '15.164.235.2:11111'
+          - 'llb1-loxilb.io:11111' # Change to your LoxiLB IP
         labels:
           region: 'ap-northeast-2'
           datacenter: 'seoul2'
+          cluster: 'prod'
+          node_name: 'loxilb-prod-1'
+          node_role: 'primary'
+      
+      # LoxiLB Node 2
+      - targets:
+          - 'llb2-loxilb.io:11111' # Change to your LoxiLB IP
+        labels:
+          region: 'ap-northeast-2'
+          datacenter: 'seoul2'
+          cluster: 'prod'
+          node_name: 'loxilb-prod-2'
+          node_role: 'secondary'
+      
+      # Add more nodes as needed
+      # - targets:
+      #     - 'LOXILB_IP:11111'
+      #   labels:
+      #     region: 'your-region'
+      #     datacenter: 'your-dc'
+      #     cluster: 'prod'
+      #     node_name: 'loxilb-prod-3'
+      #     node_role: 'standby'
