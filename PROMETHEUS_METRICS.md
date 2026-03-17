@@ -57,9 +57,16 @@ scrape_configs:
 | Traffic Processing | 10s | Important | 9 |
 | System Utilization | 10s | Critical | 3 |
 | Firewall | 10s | Critical | 3 |
+| Security Rate Limiting | 10s | Critical | 5 |
+| Real-Time Rate Indicators | 10s | Important | 4 |
 | Distribution | 2min | Operational | 6 |
 | RPS | 10s | Important | 6 |
 | LCU | 10s | Historical | 1 |
+| AI Gateway | 10s | Critical | 14 |
+| OPA L4 Watcher | 10s | Important | 4 |
+| P/D Disaggregation | 10s | Important | 5 |
+| SockProxy L7 HTTP | 10s | Important | 8 |
+| Internal Diagnostics | 10s | Operational | 6 |
 
 ---
 
@@ -1225,6 +1232,283 @@ avg_over_time(system_cpu_utilization[24h])
 
 ---
 
+## Security Rate Limiting Metrics ⭐ NEW
+
+Metrics tracking rate-based security enforcement on LoxiLB data-plane.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `security_syn_blocked_total` | Counter | SYN packets blocked by SYN-flood rate limiter |
+| `security_conn_blocked_total` | Counter | Connections blocked by connection-rate limiter |
+| `security_udp_blocked_total` | Counter | UDP packets blocked by UDP flood protection |
+| `ipfilter_blacklist_packets_total` | Counter | Packets blocked by IP blacklist rules |
+| `ipfilter_whitelist_packets_total` | Counter | Packets explicitly allowed by IP whitelist rules |
+
+### Query Examples
+
+```promql
+# SYN flood rate (packets/sec blocked)
+rate(security_syn_blocked_total[1m])
+
+# Total DDoS blocking rate across all vectors
+rate(security_syn_blocked_total[1m]) + rate(security_conn_blocked_total[1m]) + rate(security_udp_blocked_total[1m])
+
+# IP blocklist effectiveness
+rate(ipfilter_blacklist_packets_total[5m]) / (rate(ipfilter_blacklist_packets_total[5m]) + rate(ipfilter_whitelist_packets_total[5m]))
+```
+
+---
+
+## AI Gateway Metrics ⭐ NEW
+
+Metrics exported by the LoxiLB AI gateway module for LLM request routing, token tracking, and Prefill/Decode (P/D) disaggregation.
+
+### Request & Latency
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_ai_requests_total` | Counter | `model`, `tenant`, `status` | Total AI/LLM requests by model/tenant/status |
+| `loxilb_ai_request_duration_seconds` | Histogram | `model`, `tenant` | End-to-end request latency (buckets for p50/p95/p99) |
+| `loxilb_ai_active_streams` | Gauge | `model`, `tenant` | Current concurrent streaming inference sessions |
+
+### Token Usage
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_ai_tokens_total` | Counter | `model`, `tenant`, `direction` | LLM tokens consumed; `direction` = `input` or `output` |
+
+### Rate Limiting & Access Control
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_ai_rate_limit_hits_total` | Counter | `model`, `tenant` | Requests rejected by per-model/tenant rate limiter |
+| `loxilb_ai_model_not_allowed_total` | Counter | `model`, `tenant` | Requests denied by model ACL policy |
+
+### P/D Disaggregation Routing
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_ai_kv_params_found_total` | Counter | `endpoint_ip` | KV cache parameter hits (used for P/D routing decisions) |
+| `loxilb_ai_kv_params_missing_total` | Counter | `endpoint_ip` | KV cache parameter misses |
+| `loxilb_ai_pd_session_hits_total` | Counter | - | Requests routed to P/D disaggregation path |
+| `loxilb_ai_normal_session_hits_total` | Counter | - | Requests routed to standard (non-P/D) path |
+| `loxilb_ai_pd_prefill_duration_seconds` | Histogram | - | Aggregate prefill phase latency |
+| `loxilb_ai_pd_decode_ttft_seconds` | Histogram | - | Time-to-first-token for decode phase |
+| `loxilb_ai_pd_prefill_duration_per_ep_seconds` | Histogram | `endpoint_ip` | Per-endpoint prefill latency |
+| `loxilb_ai_pd_decode_duration_per_ep_seconds` | Histogram | `endpoint_ip` | Per-endpoint decode latency |
+
+### Query Examples
+
+```promql
+# AI request rate by model
+rate(loxilb_ai_requests_total[1m]) by (model)
+
+# p95 latency via recording rules
+loxilb_ai_p95
+
+# Token throughput (output tokens/sec)
+rate(loxilb_ai_tokens_total{direction="output"}[1m])
+
+# KV cache hit rate for P/D routing
+rate(loxilb_ai_kv_params_found_total[5m]) / (rate(loxilb_ai_kv_params_found_total[5m]) + rate(loxilb_ai_kv_params_missing_total[5m]))
+
+# Rate limit pressure
+rate(loxilb_ai_rate_limit_hits_total[1m]) / rate(loxilb_ai_requests_total[1m])
+```
+
+---
+
+## OPA L4 Watcher Metrics ⭐ NEW
+
+Metrics for the LoxiLB OPA (Open Policy Agent) integration, which dynamically provisions L4 firewall rules from OPA policies.
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_opa_watcher_syncs_total` | Counter | `status` | OPA policy sync count; `status` = `success` or `error` |
+| `loxilb_opa_sync_duration_seconds` | Histogram | - | Time taken for OPA policy retrieval and application |
+| `loxilb_opa_firewall_rules_total` | Gauge | - | Current number of active firewall rules provisioned from OPA |
+| `loxilb_opa_circuit_breaker_state` | Gauge | - | OPA circuit breaker: `0`=CLOSED (healthy), `1`=OPEN (failing), `2`=HALF_OPEN (recovering) |
+
+### Query Examples
+
+```promql
+# OPA sync success rate
+rate(loxilb_opa_watcher_syncs_total{status="success"}[5m]) / rate(loxilb_opa_watcher_syncs_total[5m])
+
+# OPA circuit breaker open (alert condition)
+loxilb_opa_circuit_breaker_state == 1
+
+# OPA sync latency p95 via recording rules
+loxilb_opa_sync_p95
+
+# Policy drift: rule count changes
+deriv(loxilb_opa_firewall_rules_total[10m])
+```
+
+---
+
+## P/D Disaggregation Metrics ⭐ NEW
+
+Metrics for the LoxiLB Prefill/Decode (P/D) disaggregation module, which routes LLM inference requests to separate prefill and decode nodes.
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_pd_sessions_active` | Gauge | - | Current number of active P/D disaggregated sessions |
+| `loxilb_pd_trie_nodes` | Gauge | - | Number of trie nodes in the P/D routing table (memory usage indicator) |
+| `loxilb_pd_cb_flips_total` | Counter | - | Total P/D circuit breaker state transitions (flips) |
+| `loxilb_pd_fallback_to_normal_total` | Counter | - | Sessions that fell back from P/D to normal routing |
+| `loxilb_pd_kv_blocks_total` | Counter | `endpoint` | KV cache block allocations per P/D endpoint |
+
+### Query Examples
+
+```promql
+# P/D routing stability (circuit breaker flips/min)
+rate(loxilb_pd_cb_flips_total[5m]) * 60
+
+# P/D fallback rate (should be near 0)
+rate(loxilb_pd_fallback_to_normal_total[5m])
+
+# P/D routing table memory footprint
+loxilb_pd_trie_nodes * 64  # approximate bytes per node
+
+# KV block rate per endpoint
+rate(loxilb_pd_kv_blocks_total[1m]) by (endpoint)
+```
+
+---
+
+## SockProxy L7 HTTP Metrics ⭐ NEW
+
+L7 HTTP metrics from the LoxiLB sockproxy module providing visibility into HTTP-level request handling, response classification, and HTTP/2 connection efficiency.
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `proxy_http_responses_total` | Counter | - | Total HTTP responses proxied by sockproxy |
+| `proxy_http_responses_by_status_total` | Counter | `status_class` | Responses grouped by HTTP status class (`2xx`, `4xx`, `5xx`) |
+| `proxy_http_ttfb_seconds` | Histogram | - | Time-to-first-byte latency histogram |
+| `proxy_http2_active_sessions` | Gauge | - | Current active HTTP/2 sessions |
+| `proxy_http2_connection_reuse_avg` | Gauge | - | Average HTTP/2 streams per connection (multiplexing efficiency) |
+| `proxy_session_affinity_hit_rate` | Gauge | - | Conversation routing hit rate; target >0.95 |
+| `proxy_conversation_sessions` | Gauge | - | Active AI conversation session mappings in memory |
+| `proxy_pd_kv_params_overflow_total` | Counter | - | Events where P/D KV parameters exceeded buffer capacity |
+
+### Query Examples
+
+```promql
+# HTTP error rate
+rate(proxy_http_responses_by_status_total{status_class="5xx"}[5m]) / rate(proxy_http_responses_total[5m])
+
+# TTFB p95 via recording rules
+histogram_quantile(0.95, rate(proxy_http_ttfb_seconds_bucket[5m]))
+
+# HTTP/2 adoption
+proxy_http2_active_sessions / proxy_active_connections
+
+# P/D KV overflow rate (should be 0 in healthy systems)
+rate(proxy_pd_kv_params_overflow_total[1m])
+```
+
+---
+
+## Internal Observability Diagnostics ⭐ NEW
+
+Internal counters for monitoring LoxiLB's own metric collection health and data-plane processing pipeline.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `loxilb_skipped_closed_connections_total` | Counter | Connections that were already closed when metric collection ran |
+| `loxilb_skipped_new_flow_cycles_total` | Counter | New-flow processing cycles that were skipped due to load |
+| `loxilb_metrics_dropped_backpressure_total` | Counter | Metric events dropped because the export channel was full |
+| `loxilb_counter_reset_events_total` | Counter | Counter overflow/reset events detected during delta calculation |
+| `loxilb_closed_connections_processed_total` | Counter | Closed connections that were successfully processed and cleaned up |
+| `loxilb_five_tuple_reuse_detected_total` | Counter | 5-tuple (src/dst IP+port+proto) reuse events detected |
+
+### Query Examples
+
+```promql
+# Metric drop rate (indicates collection health)
+rate(loxilb_metrics_dropped_backpressure_total[1m])
+
+# Counter reset frequency (should be near 0)
+rate(loxilb_counter_reset_events_total[5m])
+
+# 5-tuple reuse rate (network NAT/ECMP indicator)
+rate(loxilb_five_tuple_reuse_detected_total[5m])
+
+# Overall collection health score
+# All diagnostic counters should be near 0 under normal conditions
+sum(rate({__name__=~"loxilb_skipped_.*|loxilb_metrics_dropped_.*"}[5m]))
+```
+
+---
+
+## Recording Rules Reference ⭐ NEW
+
+The `recording-rules.yml` file defines pre-computed rules to eliminate repetitive histogram_quantile calculations at query time. These are loaded via `rule_files:` in `prometheus.yml`.
+
+### Group: `loxilb_ai_recording_rules`
+
+| Rule Record | Expression Summary | Description |
+|-------------|-------------------|-------------|
+| `loxilb_ai_p50` | `histogram_quantile(0.50, ...)` | AI request latency p50 by model/tenant |
+| `loxilb_ai_p95` | `histogram_quantile(0.95, ...)` | AI request latency p95 by model/tenant |
+| `loxilb_ai_p99` | `histogram_quantile(0.99, ...)` | AI request latency p99 by model/tenant |
+| `loxilb_ai_pd_prefill_p50` | `histogram_quantile(0.50, ...)` | Prefill phase latency p50 |
+| `loxilb_ai_pd_prefill_p95` | `histogram_quantile(0.95, ...)` | Prefill phase latency p95 |
+| `loxilb_ai_pd_prefill_p99` | `histogram_quantile(0.99, ...)` | Prefill phase latency p99 |
+| `loxilb_ai_pd_decode_ttft_p50` | `histogram_quantile(0.50, ...)` | TTFT latency p50 |
+| `loxilb_ai_pd_decode_ttft_p95` | `histogram_quantile(0.95, ...)` | TTFT latency p95 |
+| `loxilb_ai_pd_decode_ttft_p99` | `histogram_quantile(0.99, ...)` | TTFT latency p99 |
+| `loxilb_ai_request_rate_1m` | `sum(rate(...[1m]))` | Total AI request rate (1m window) |
+| `loxilb_ai_error_rate_1m` | `sum(rate(...{status="error"}[1m]))` | AI error request rate |
+| `loxilb_ai_token_rate_output_1m` | `sum(rate(loxilb_ai_tokens_total{direction="output"}[1m]))` | Output token throughput |
+
+### Group: `loxilb_opa_recording_rules`
+
+| Rule Record | Expression Summary | Description |
+|-------------|-------------------|-------------|
+| `loxilb_opa_sync_p50` | `histogram_quantile(0.50, ...)` | OPA sync latency p50 |
+| `loxilb_opa_sync_p95` | `histogram_quantile(0.95, ...)` | OPA sync latency p95 |
+| `loxilb_opa_sync_p99` | `histogram_quantile(0.99, ...)` | OPA sync latency p99 |
+| `loxilb_opa_sync_success_rate` | `rate(syncs{status="success"}) / rate(syncs)` | OPA sync success ratio |
+| `loxilb_opa_sync_error_rate` | `rate(syncs{status="error"})` | OPA sync error rate |
+
+### Usage
+
+```yaml
+# prometheus.yml — enable recording rules
+rule_files:
+  - "recording-rules.yml"
+```
+
+Then reference recording rule metrics in Grafana panels instead of raw histogram_quantile expressions for better dashboard performance.
+
+---
+
+## Metric Collection Architecture
+
+### Grafana Variables
+```
+# Service selector
+label_values(total_requests_per_service, service)
+
+# Endpoint selector
+label_values(endpoint_traffic_bytes{service="$service"}, dip)
+```
+
+### Export to External Systems
+```promql
+# JSON export for billing
+{__name__=~"consumed_lcus|processed_bytes_total|total_requests"}
+
+# CSV export for reporting
+increase(total_requests[24h])
+increase(processed_bytes_total[24h])
+avg_over_time(system_cpu_utilization[24h])
+```
+
+---
+
 ## Metric Collection Architecture
 
 ```
@@ -1250,6 +1534,7 @@ Scraper    (Time Series)
 | 1.1 | 2025-01-09 | Added protocol-specific packet metrics |
 | 1.2 | 2025-01-09 | Added traffic distribution metrics |
 | 1.3 | 2025-01-09 | Added advanced flow-level analysis section |
+| 2.0 | 2026-03-17 | Added Security Rate Limiting, AI Gateway, OPA, P/D Disaggregation, SockProxy L7 HTTP, Internal Diagnostics, Recording Rules sections (phases 1-9) |
 
 ---
 

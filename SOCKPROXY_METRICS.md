@@ -12,6 +12,7 @@ Comprehensive guide to Prometheus metrics exported by LoxiLB's sockproxy module 
 - [Tier 1: Critical AI/LLM Metrics](#tier-1-critical-aillm-metrics)
 - [Tier 2: Important Observability Metrics](#tier-2-important-observability-metrics)
 - [Tier 3: Operational Debugging Metrics](#tier-3-operational-debugging-metrics)
+- [Tier 4: L7 HTTP Metrics](#tier-4-l7-http-metrics-)
 - [Query Examples](#query-examples)
 - [Grafana Dashboard Examples](#grafana-dashboard-examples)
 - [Alerting Rules](#alerting-rules)
@@ -131,6 +132,7 @@ proxy_http2_connection_reuse_avg
 | **Tier 1** | Critical AI/LLM performance | 10s | 4 | High |
 | **Tier 2** | Important observability | 10s | 5 | Medium |
 | **Tier 3** | Operational debugging | 10s | 4 | Low |
+| **Tier 4** | L7 HTTP & P/D metrics | 10s | 4 | Medium |
 
 ### Collection Pattern
 All metrics use **10-second collection intervals** via `RunSockproxyMetrics()` goroutine following the `RunSecurityRateStats()` pattern from `prometheus.go`.
@@ -673,6 +675,101 @@ rate(proxy_conversation_ttl_expired_total[5m]) * 60 > 100
 # Calculate optimal TTL based on expiration rate
 # Goal: Keep expiration rate < 10% of session creation rate
 (rate(proxy_conversation_ttl_expired_total[5m]) / rate(proxy_conversation_sessions[5m])) < 0.10
+```
+
+---
+
+## Tier 4: L7 HTTP Metrics ⭐ NEW
+
+These metrics expose HTTP-layer visibility added in phase 4 of the metrics expansion. They complement the existing connection-level metrics with response-level observability.
+
+---
+
+### `proxy_http_responses_total`
+**Type**: Counter (monotonic)  
+**Update**: Every 10 seconds  
+**Description**: Total number of HTTP responses proxied through sockproxy
+
+#### Query Examples
+
+```promql
+# HTTP response rate
+rate(proxy_http_responses_total[1m])
+
+# Total responses in last hour
+increase(proxy_http_responses_total[1h])
+```
+
+---
+
+### `proxy_http_responses_by_status_total`
+**Type**: Counter (monotonic)  
+**Labels**: `status_class` (`2xx`, `4xx`, `5xx`)  
+**Update**: Every 10 seconds  
+**Description**: HTTP responses grouped by status class for error rate tracking
+
+#### Query Examples
+
+```promql
+# HTTP 5xx error rate
+rate(proxy_http_responses_by_status_total{status_class="5xx"}[5m])
+
+# Error percentage
+rate(proxy_http_responses_by_status_total{status_class="5xx"}[5m]) /
+rate(proxy_http_responses_total[5m]) * 100
+
+# 4xx vs 5xx comparison
+sum by (status_class) (rate(proxy_http_responses_by_status_total[5m]))
+```
+
+#### Thresholds
+- **5xx rate > 1%**: Warning
+- **5xx rate > 5%**: Critical
+
+---
+
+### `proxy_http_ttfb_seconds`
+**Type**: Histogram  
+**Update**: Every 10 seconds  
+**Description**: Time-to-first-byte latency distribution for HTTP responses through sockproxy. Key metric for AI streaming workload responsiveness.
+
+#### Query Examples
+
+```promql
+# TTFB p50 (median)
+histogram_quantile(0.50, rate(proxy_http_ttfb_seconds_bucket[5m]))
+
+# TTFB p95
+histogram_quantile(0.95, rate(proxy_http_ttfb_seconds_bucket[5m]))
+
+# TTFB p99
+histogram_quantile(0.99, rate(proxy_http_ttfb_seconds_bucket[5m]))
+
+# Alert on slow TTFB (>2s p95)
+histogram_quantile(0.95, rate(proxy_http_ttfb_seconds_bucket[5m])) > 2
+```
+
+#### Thresholds
+- **p95 < 0.5s**: Excellent
+- **p95 < 1.0s**: Good
+- **p95 < 2.0s**: Acceptable
+- **p95 > 2.0s**: Investigate backend latency
+
+---
+
+### `proxy_pd_kv_params_overflow_total`
+**Type**: Counter (monotonic)  
+**Update**: Every 10 seconds  
+**Description**: Events where P/D KV parameters exceeded buffer capacity. Should remain 0 under normal operation.
+
+#### Query Examples
+
+```promql
+# Overflow events per minute
+rate(proxy_pd_kv_params_overflow_total[1m]) * 60
+
+# Alert on any overflow
+proxy_pd_kv_params_overflow_total > 0
 ```
 
 ---
@@ -1380,6 +1477,10 @@ groups:
 | `proxy_cache_drain_partial_total` | Counter | 3 | Events | <50/min |
 | `proxy_graceful_close_total` | Counter | 3 | Closes | Monitor trend |
 | `proxy_conversation_ttl_expired_total` | Counter | 3 | Expirations | <100/min |
+| `proxy_http_responses_total` | Counter | 4 | Responses | Monitor trend |
+| `proxy_http_responses_by_status_total` | Counter | 4 | Responses | 5xx < 1% |
+| `proxy_http_ttfb_seconds` | Histogram | 4 | Seconds | p95 < 1.0s |
+| `proxy_pd_kv_params_overflow_total` | Counter | 4 | Events | 0/min |
 
 ---
 
@@ -1399,9 +1500,10 @@ For issues or questions:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-01-17 | Initial sockproxy metrics documentation |
+| 2.0 | 2026-03-17 | Added Tier 4: L7 HTTP metrics (proxy_http_responses_total, proxy_http_responses_by_status_total, proxy_http_ttfb_seconds, proxy_pd_kv_params_overflow_total); updated Metric Categories table and Appendix |
 
 ---
 
 **Document Status**: Production Ready  
-**Last Updated**: 2025-01-17  
+**Last Updated**: 2026-03-17  
 **Maintained By**: LoxiLB Enterprise Team

@@ -27,22 +27,35 @@ monitoring namespace
 └── Grafana (Deployment + Service)
     ├── ConfigMap: grafana-datasources
     ├── ConfigMap: grafana-dashboards-config
-    ├── ConfigMap: grafana-dashboard-loxilb
+    ├── ConfigMap: grafana-dashboard-loxilb          (grafana-loxilb-dashboard.json, 53 panels)
+    ├── ConfigMap: grafana-dashboard-simple2         (grafana-dashboards-simple2.json, 33 panels)
+    ├── ConfigMap: grafana-dashboard-sockproxy-ai    (sockproxy-ai-workload-dashboard.json, 17 panels)
+    ├── ConfigMap: grafana-dashboard-sockproxy-conn  (sockproxy-connections-dashboard.json, 20 panels)
+    ├── ConfigMap: grafana-dashboard-ai-gateway      (loxilb-ai-gateway-dashboard.json, 21 panels) ⭐ NEW
+    ├── ConfigMap: grafana-dashboard-observability   (loxilb-observability-dashboard.json, 12 panels) ⭐ NEW
     └── PVC: grafana-data (5Gi)
 ```
 
 ## Deployment Steps
 
-### 1. Create the Dashboard ConfigMap
+### 1. Create the Dashboard ConfigMaps
 
-First, create the ConfigMap for the Grafana dashboard using the JSON file:
+The dashboard ConfigMap (`k8s/02-dashboard-configmap.yaml`) already contains all 6 dashboards. To regenerate it from scratch:
 
 ```bash
+# Generate the consolidated dashboard ConfigMap from all JSON files
 kubectl create configmap grafana-dashboard-loxilb \
   --from-file=loxilb.json=grafana-loxilb-dashboard.json \
+  --from-file=simple2.json=grafana-dashboards-simple2.json \
+  --from-file=sockproxy-ai.json=sockproxy-ai-workload-dashboard.json \
+  --from-file=sockproxy-conn.json=sockproxy-connections-dashboard.json \
+  --from-file=ai-gateway.json=loxilb-ai-gateway-dashboard.json \
+  --from-file=observability.json=loxilb-observability-dashboard.json \
   --namespace=monitoring \
-  --dry-run=client -o yaml > 02-dashboard-configmap.yaml
+  --dry-run=client -o yaml > k8s/02-dashboard-configmap.yaml
 ```
+
+> **Note**: The pre-built `k8s/02-dashboard-configmap.yaml` already includes all 6 dashboards (156+ panels). Only regenerate if you have modified dashboard JSON files.
 
 ### 2. Apply All Manifests
 
@@ -312,6 +325,8 @@ If not, you may need to:
 1. Verify the ConfigMap was created correctly:
    ```bash
    kubectl get configmap grafana-dashboard-loxilb -n monitoring
+   kubectl describe configmap grafana-dashboard-loxilb -n monitoring | grep "Data Keys"
+   # Should show: loxilb.json, simple2.json, sockproxy-ai.json, sockproxy-conn.json, ai-gateway.json, observability.json
    ```
 
 2. Check Grafana logs for provisioning errors:

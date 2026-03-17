@@ -82,7 +82,7 @@ curl -X POST http://admin:admin@grafana:3000/api/dashboards/db \
 ---
 
 
-#### **Advanced Flow-Level Analysis Section** (NEW)
+#### **Advanced Flow-Level Analysis Section** ⭐
 - **Client-to-Endpoint Traffic Heatmap**: Visual heatmap showing bandwidth intensity between all client IPs (sip) and endpoint IPs (dip)
 - **Top 20 Flows by Bandwidth**: Line graph ranking highest bandwidth client-endpoint flows
 - **Top 20 Flows by Packet Rate**: Line graph ranking highest packet rate flows
@@ -104,20 +104,62 @@ curl -X POST http://admin:admin@grafana:3000/api/dashboards/db \
 - `lb_rule_interaction_packets{service, sip, dip}`: Cumulative packets per flow
 - **Label Dimensions**: service (load balancer rule), sip (source IP), dip (destination IP)
 
-**Operator Actions**:
-1. **Heatmap**: Quickly identify hot spots (high-bandwidth flows showing as red/orange)
-2. **Flow Table**: Drill down to specific client-endpoint pairs, sort by bandwidth/packet rate
-3. **Network Graph**: Understand connection topology, detect unusual patterns
-4. **Avg Packet Size**: Classify application types:
-   - `<64 bytes`: TCP control, ACKs
-   - `100-500 bytes`: HTTP API calls
-   - `500-1400 bytes`: Rich web content
-   - `>1400 bytes`: Video streaming, file transfers
+---
 
-**Example Scenarios**:
-- **Scenario 1 - Elephant Flow**: Heatmap shows one bright red cell → Client 10.0.1.50 consuming 150MB/s to endpoint 192.168.1.10 → Investigate if legitimate or attack
-- **Scenario 2 - Load Imbalance**: Network graph shows all clients connecting to only 1 of 5 endpoints → Load balancing algorithm issue
-- **Scenario 3 - DDoS Attack**: Flow table shows 1000+ flows with avg packet size <100 bytes and packet rate >10k pps → Small packet attack, trigger firewall rules
+#### **Real-Time Rate Indicators Section** ⭐ NEW (grafana-loxilb-dashboard.json)
+- **RPS Gauge**: Instantaneous requests per second (`loxilb_rps_requests`)
+- **Bps Gauge**: Bits per second throughput (`loxilb_rps_bps`)
+- **Pps Gauge**: Packets per second processing rate (`loxilb_rps_pps`)
+- **Eps Gauge**: Errors per second (`loxilb_rps_eps`)
+- **1-min Avg RPS**: Smoothed 1-minute average RPS via recording rule
+- **1-min Peak RPS**: 1-minute maximum RPS for burst analysis
+
+**Use Case**: Production operators need instant, at-a-glance rate indicators without running expensive range queries.
+
+---
+
+#### **Security Rate Limiting Section** ⭐ NEW (grafana-dashboards-simple2.json)
+- **SYN Blocked Rate**: Time-series graph of `rate(security_syn_blocked_total[1m])` — SYN flood mitigation activity
+- **Conn-Rate Blocked Rate**: `rate(security_conn_blocked_total[1m])` — rapid-connect abuse blocking
+- **UDP Flood Blocked Rate**: `rate(security_udp_blocked_total[1m])` — volumetric UDP attack counter
+- **IP Filter Blocked Packets**: `rate(ipfilter_blacklist_packets_total[1m])` — blocklist effectiveness
+- **IP Filter Allowed Packets**: `rate(ipfilter_whitelist_packets_total[1m])` — allowlist passthrough
+
+**Use Case**: Real-time DDoS/attack detection with per-vector visibility.
+
+---
+
+### New Dashboards (Phases 6-7) ⭐ NEW
+
+#### `loxilb-ai-gateway-dashboard.json`
+**UID**: `loxilb-ai-gateway`  
+**Title**: LoxiLB AI Gateway  
+**Panels**: 21  
+**Template Variables**: `$model`, `$tenant`
+
+| Row | Panels | Key Metrics |
+|-----|--------|-------------|
+| AI Request Overview | Request rate, latency gauges (p50/p95/p99), error rate | `loxilb_ai_requests_total`, recording rules |
+| Token Usage | Input/output token rates, cumulative totals | `loxilb_ai_tokens_total` |
+| Active Streams | Live streaming session count, RPS | `loxilb_ai_active_streams` |
+| Rate Limiting & ACL | Rate limit hits, model ACL denials | `loxilb_ai_rate_limit_hits_total`, `loxilb_ai_model_not_allowed_total` |
+| P/D Disaggregation | Prefill/decode latency, KV hit rate, session routing split | P/D histograms, `loxilb_ai_kv_params_*` |
+
+**Access**: Grafana → Dashboards → LoxiLB → **LoxiLB AI Gateway**
+
+---
+
+#### `loxilb-observability-dashboard.json`
+**UID**: `loxilb-observability`  
+**Title**: LoxiLB Observability & OPA  
+**Panels**: 12  
+
+| Row | Panels | Key Metrics |
+|-----|--------|-------------|
+| OPA L4 Watcher | Sync rate, sync latency (p95), circuit breaker state, rule count | `loxilb_opa_*` |
+| P/D & Internal Diagnostics | P/D sessions, trie nodes, fallback rate, skipped flows, dropped metrics | `loxilb_pd_*`, `loxilb_skipped_*`, `loxilb_metrics_dropped_backpressure_total` |
+
+**Access**: Grafana → Dashboards → LoxiLB → **LoxiLB Observability & OPA**
 
 ---
 
@@ -149,7 +191,29 @@ curl -X POST http://admin:admin@grafana:3000/api/dashboards/db \
 
 **Example**: Select `192.168.10.5` to view all client connections to that specific endpoint
 
----
+### `$model` ⭐ NEW (AI Gateway dashboard)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_ai_requests_total, model)`
+- **Description**: Filter AI panels by LLM model (e.g., `gpt-4`, `llama3-70b`)
+- **Multi-select**: No
+- **Include All**: Yes
+- **Usage**: Isolate metrics for a specific model to compare performance
+
+### `$tenant` ⭐ NEW (AI Gateway dashboard)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_ai_requests_total, tenant)`
+- **Description**: Filter AI panels by tenant for multi-tenant deployments
+- **Multi-select**: No
+- **Include All**: Yes
+- **Usage**: View per-tenant token consumption and rate limit events
+
+### `$instance` ⭐ NEW (Real-Time Rate Indicators)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_rps_requests, instance)`
+- **Description**: Filter rate indicator panels by specific LoxiLB node instance
+- **Multi-select**: No
+- **Include All**: Yes
+- **Usage**: Compare per-node RPS when running multiple LoxiLB instances
 
 ## Alert Integration
 
@@ -179,19 +243,21 @@ global:
     cluster: 'production'
     environment: 'prod'
 
+rule_files:
+  - "recording-rules.yml"   # Pre-computed AI quantiles and RPS aggregations
+
 scrape_configs:
   - job_name: 'loxilb-enterprise'
     scrape_interval: 10s
     scrape_timeout: 5s
-    metrics_path: '/metrics'
+    metrics_path: '/netlox/v1/metrics'
     static_configs:
       - targets:
-          - 'loxilb-1:8080'
-          - 'loxilb-2:8080'
-          - 'loxilb-3:8080'
+          - 'llb1-loxilb.io:11111'
+          - 'llb2-loxilb.io:11111'
         labels:
-          region: 'us-east-1'
-          datacenter: 'dc1'
+          region: 'ap-northeast-2'
+          datacenter: 'seoul'
 
   # For Kubernetes deployments
   - job_name: 'loxilb-kubernetes'
@@ -530,7 +596,8 @@ groups:
 Add to Prometheus config:
 ```yaml
 rule_files:
-  - 'loxilb-alerts.yml'
+  - 'recording-rules.yml'   # Pre-computed recording rules (already included)
+  - 'loxilb-alerts.yml'     # Alert rules (optional)
 
 alerting:
   alertmanagers:
@@ -758,6 +825,7 @@ curl -X POST http://admin:admin@grafana:3000/api/dashboards/db \
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-01-09 | Initial dashboard and setup guide |
+| 2.0 | 2026-03-17 | Added Real-Time Rate Indicators and Security Rate Limiting rows to existing dashboards; added loxilb-ai-gateway and loxilb-observability new dashboards; added $model/$tenant/$instance variables; updated Prometheus config with rule_files and corrected endpoint paths (phases 1-9) |
 
 ---
 

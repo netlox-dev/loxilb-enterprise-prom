@@ -30,7 +30,7 @@ Production-grade monitoring solution for LoxiLB Enterprise load balancer featuri
 This monitoring stack provides complete observability for LoxiLB Enterprise deployments with:
 
 - **Real-time Metrics**: 10-second scrape interval for instant visibility
-- **28 Dashboard Panels**: Comprehensive visualization across 6 operational categories
+- **156+ Dashboard Panels**: Comprehensive visualization across 8 dashboards and 14+ operational categories
 - **Advanced Flow Analysis**: Client-to-endpoint traffic mapping and elephant flow detection
 - **Production Tested**: 98.5% quality score, battle-tested configurations
 - **Zero Configuration**: Auto-provisioned dashboards and datasources
@@ -44,8 +44,15 @@ This monitoring stack provides complete observability for LoxiLB Enterprise depl
 | **Endpoint Health** | 3 metrics | Backend availability, health check status, SLA compliance |
 | **Traffic Analysis** | 9 metrics | Bandwidth, packet rates, protocol breakdown |
 | **System Resources** | 3 metrics | CPU, memory, disk utilization |
-| **Security** | 3 metrics | Firewall drops, rule effectiveness, attack detection |
+| **Security Firewall** | 3 metrics | Firewall drops, rule effectiveness, attack detection |
+| **Security Rate Limiting** | 4 metrics | SYN flood, conn-rate, UDP flood blocking, IP filter |
+| **Real-Time Rate Indicators** | 6 metrics | RPS, bps, pps, eps gauges; 1m avg & peak |
 | **Flow-level Analysis** | 6 metrics | Client-endpoint pairs, elephant flows, traffic topology |
+| **AI Gateway** | 14 metrics | LLM requests, tokens, streams, rate-limits, P/D sessions |
+| **OPA L4 Watcher** | 4 metrics | Policy sync, circuit-breaker state, firewall rule count |
+| **P/D Disaggregation** | 5 metrics | Prefill/decode sessions, KV blocks, trie nodes |
+| **SockProxy L7 HTTP** | 8 metrics | HTTP responses, TTFB histogram, HTTP/2 sessions |
+| **Internal Diagnostics** | 6 metrics | Skipped flows, dropped metrics, counter resets |
 
 ---
 
@@ -76,7 +83,13 @@ open http://localhost:3000
 # Login: admin / admin
 ```
 
-**Dashboard Auto-Loaded**: Navigate to **Dashboards → LoxiLB → LoxiLB Enterprise - Production Monitoring**
+**Dashboards Auto-Loaded**: Navigate to **Dashboards → LoxiLB** to find all pre-provisioned dashboards:
+- **LoxiLB Enterprise - Production Monitoring** (main dashboard, 53 panels)
+- **LoxiLB Simplified Overview** (33 panels)
+- **LoxiLB Sockproxy - AI Workload** (17 panels)
+- **LoxiLB Sockproxy - Connections** (20 panels)
+- **LoxiLB AI Gateway** ⭐ NEW (21 panels — deep-dive AI/LLM metrics)
+- **LoxiLB Observability & OPA** ⭐ NEW (12 panels — OPA, P/D, diagnostics)
 
 ---
 
@@ -158,7 +171,7 @@ services:
 - **Drop Rate Trend**: Real-time firewall drop rate graph
 - **Top 10 Firewall Rules**: Most active rules (pie chart)
 
-### 6. Advanced Flow-Level Analysis ⭐ NEW
+### 6. Advanced Flow-Level Analysis ⭐
 - **Client-to-Endpoint Heatmap**: Visual intensity map of bandwidth between all client-endpoint pairs
 - **Top 20 Flows by Bandwidth**: Elephant flow identification
 - **Top 20 Flows by Packet Rate**: High-packet-rate flow detection
@@ -179,6 +192,34 @@ services:
 - **Application Profiling**: Classify traffic types by packet size patterns
 - **Capacity Planning**: Per-client and per-endpoint resource tracking
 
+### 7. Real-Time Rate Indicators ⭐ NEW
+- **RPS Gauge**: Instantaneous requests-per-second (live feed from `loxilb_rps_requests`)
+- **Bps / Pps / Eps Gauges**: Bits-, packets-, and errors-per-second at a glance
+- **1-minute Average RPS**: Smoothed rate for capacity trending
+- **1-minute Peak RPS**: Burst ceiling for SLA validation
+
+### 8. Security Rate Limiting ⭐ NEW
+- **SYN Flood Blocking**: Real-time `security_syn_blocked_total` rate graph
+- **Connection-Rate Blocking**: `security_conn_blocked_total` — rapid-connect attempts
+- **UDP Flood Blocking**: `security_udp_blocked_total` — volumetric UDP attack counter
+- **IP Block/Allow Tracking**: `ipfilter_blacklist_packets_total` vs `ipfilter_whitelist_packets_total`
+
+### 9. AI Gateway Monitoring (loxilb-ai-gateway dashboard) ⭐ NEW
+- **Request Throughput & Latency**: `loxilb_ai_requests_total` rate, histogram quantiles via recording rules (`loxilb_ai_p50/p95/p99`)
+- **Token Usage**: `loxilb_ai_tokens_total{direction="input|output"}` — track LLM token consumption
+- **Active Streaming Sessions**: `loxilb_ai_active_streams` — real-time concurrent inference sessions
+- **Rate Limit & ACL Events**: `loxilb_ai_rate_limit_hits_total`, `loxilb_ai_model_not_allowed_total`
+- **P/D Session Routing**: `loxilb_ai_pd_session_hits_total`, `loxilb_ai_normal_session_hits_total`
+- **KV Cache Efficiency**: `loxilb_ai_kv_params_found_total` vs `loxilb_ai_kv_params_missing_total`
+- **Template Variables**: `$model` (filter by LLM model), `$tenant` (multi-tenancy)
+
+### 10. OPA & Observability Diagnostics (loxilb-observability dashboard) ⭐ NEW
+- **OPA Policy Sync**: `loxilb_opa_watcher_syncs_total{status}`, `loxilb_opa_sync_duration_seconds` histogram
+- **Circuit Breaker State**: `loxilb_opa_circuit_breaker_state` (0=CLOSED, 1=OPEN, 2=HALF_OPEN)
+- **Firewall Rule Count**: `loxilb_opa_firewall_rules_total`
+- **P/D Disaggregation Health**: `loxilb_pd_sessions_active`, `loxilb_pd_cb_flips_total`, `loxilb_pd_fallback_to_normal_total`
+- **Internal Diagnostics**: Skipped connections, dropped backpressure events, 5-tuple reuse, counter resets
+
 ---
 
 ## 📦 Installation
@@ -190,9 +231,15 @@ services:
 loxilb-enterprise-prom/
 ├── docker-compose.yml
 ├── prometheus.yml
+├── recording-rules.yml                      # NEW: Pre-computed recording rules
 ├── grafana-datasources.yml
 ├── grafana-dashboards.yml
-├── grafana-loxilb-dashboard.json
+├── grafana-loxilb-dashboard.json            # Main production monitoring (53 panels)
+├── grafana-dashboards-simple2.json          # Simplified overview (33 panels)
+├── sockproxy-ai-workload-dashboard.json     # AI/LLM workload monitoring (17 panels)
+├── sockproxy-connections-dashboard.json     # Connection & P/D health (20 panels)
+├── loxilb-ai-gateway-dashboard.json         # NEW: AI gateway deep-dive (21 panels)
+├── loxilb-observability-dashboard.json      # NEW: OPA & diagnostics (12 panels)
 └── README.md
 ```
 
@@ -267,6 +314,9 @@ global:
     cluster: 'production'       # Cluster identifier
     environment: 'prod'         # Environment label
 
+rule_files:
+  - "recording-rules.yml"       # Pre-computed recording rules (AI quantiles, RPS aggregations)
+
 scrape_configs:
   - job_name: 'loxilb-enterprise'
     scrape_interval: 10s
@@ -288,6 +338,29 @@ scrape_configs:
 | `scrape_timeout` | 5s | Maximum time to wait for scrape response |
 | `metrics_path` | `/netlox/v1/metrics` | LoxiLB-specific metrics endpoint |
 | `retention.time` | 30d | How long to keep metrics (configured in docker-compose.yml) |
+| `rule_files` | `recording-rules.yml` | Pre-computed histogram quantiles and AI aggregations |
+
+### Recording Rules Configuration ⭐ NEW
+
+**File**: `recording-rules.yml`
+
+Pre-computed rules that reduce query-time CPU for expensive histogram quantile and aggregation calculations:
+
+```yaml
+groups:
+  - name: loxilb_ai_recording_rules
+    rules:
+      # AI request latency quantiles
+      - record: loxilb_ai_p50
+        expr: histogram_quantile(0.50, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (le, model, tenant))
+      - record: loxilb_ai_p95
+        expr: histogram_quantile(0.95, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (le, model, tenant))
+      - record: loxilb_ai_p99
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (le, model, tenant))
+      # ... 17 rules total (see recording-rules.yml)
+```
+
+The full `recording-rules.yml` includes 17 rules covering AI latency quantiles, prefill/decode latency, OPA sync percentiles, and RPS aggregations.
 
 ### Grafana Configuration
 
@@ -365,6 +438,27 @@ environment:
 - **Include All**: Yes ✓
 
 **Usage Example**: Select `192.168.10.5` to view all client connections to that backend.
+
+#### `$model` ⭐ NEW (AI Gateway dashboard)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_ai_requests_total, model)`
+- **Description**: Filter AI panels by LLM model name (e.g., `gpt-4`, `llama3`)
+- **Multi-select**: No
+- **Include All**: Yes ✓
+
+#### `$tenant` ⭐ NEW (AI Gateway dashboard)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_ai_requests_total, tenant)`
+- **Description**: Filter AI panels by tenant/namespace for multi-tenant deployments
+- **Multi-select**: No
+- **Include All**: Yes ✓
+
+#### `$instance` ⭐ NEW (RPS panels)
+- **Type**: Query Variable
+- **Query**: `label_values(loxilb_rps_requests, instance)`
+- **Description**: Filter real-time rate panels by LoxiLB instance
+- **Multi-select**: No
+- **Include All**: Yes ✓
 
 ### Panel Reference
 
@@ -508,6 +602,87 @@ environment:
 - `sip`: Source IP (client IP address)
 - `dip`: Destination IP (endpoint/backend IP address)
 - `rule`: Firewall rule identifier
+
+### Security Rate Limiting Metrics ⭐ NEW
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `security_syn_blocked_total` | Counter | SYN packets blocked by rate limiter |
+| `security_conn_blocked_total` | Counter | Connections blocked by connection-rate limiter |
+| `security_udp_blocked_total` | Counter | UDP packets blocked by flood protection |
+| `ipfilter_blacklist_packets_total` | Counter | Packets blocked by IP blacklist/blocklist |
+| `ipfilter_whitelist_packets_total` | Counter | Packets allowed by IP whitelist |
+
+### Real-Time Rate Metrics ⭐ NEW
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_rps_requests` | Gauge | `instance` | Instantaneous requests per second |
+| `loxilb_rps_bps` | Gauge | `instance` | Bits per second |
+| `loxilb_rps_pps` | Gauge | `instance` | Packets per second |
+| `loxilb_rps_eps` | Gauge | `instance` | Errors per second |
+
+### AI Gateway Metrics ⭐ NEW
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_ai_requests_total` | Counter | `model`, `tenant`, `status` | Total AI/LLM requests |
+| `loxilb_ai_request_duration_seconds` | Histogram | `model`, `tenant` | Request latency distribution |
+| `loxilb_ai_tokens_total` | Counter | `model`, `tenant`, `direction` | LLM token consumption (input/output) |
+| `loxilb_ai_active_streams` | Gauge | `model`, `tenant` | Active concurrent streaming sessions |
+| `loxilb_ai_rate_limit_hits_total` | Counter | `model`, `tenant` | Rate limit triggers |
+| `loxilb_ai_model_not_allowed_total` | Counter | `model`, `tenant` | ACL/policy denials |
+| `loxilb_ai_kv_params_found_total` | Counter | `endpoint_ip` | KV cache hits for P/D routing |
+| `loxilb_ai_kv_params_missing_total` | Counter | `endpoint_ip` | KV cache misses for P/D routing |
+| `loxilb_ai_pd_session_hits_total` | Counter | - | Sessions routed to P/D disaggregation path |
+| `loxilb_ai_normal_session_hits_total` | Counter | - | Sessions routed to standard path |
+| `loxilb_ai_pd_prefill_duration_seconds` | Histogram | - | Prefill phase latency |
+| `loxilb_ai_pd_decode_ttft_seconds` | Histogram | - | Time-to-first-token (decode phase) |
+| `loxilb_ai_pd_prefill_duration_per_ep_seconds` | Histogram | `endpoint_ip` | Per-endpoint prefill latency |
+| `loxilb_ai_pd_decode_duration_per_ep_seconds` | Histogram | `endpoint_ip` | Per-endpoint decode latency |
+
+### OPA L4 Watcher Metrics ⭐ NEW
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_opa_watcher_syncs_total` | Counter | `status` | OPA policy sync count (success/error) |
+| `loxilb_opa_sync_duration_seconds` | Histogram | - | Time taken for each OPA policy sync |
+| `loxilb_opa_firewall_rules_total` | Gauge | - | Current number of firewall rules from OPA |
+| `loxilb_opa_circuit_breaker_state` | Gauge | - | OPA circuit breaker: 0=CLOSED, 1=OPEN, 2=HALF_OPEN |
+
+### P/D Disaggregation Metrics ⭐ NEW
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loxilb_pd_sessions_active` | Gauge | - | Active prefill/decode disaggregated sessions |
+| `loxilb_pd_trie_nodes` | Gauge | - | Current trie nodes in P/D routing table |
+| `loxilb_pd_cb_flips_total` | Counter | - | P/D circuit breaker state transitions |
+| `loxilb_pd_fallback_to_normal_total` | Counter | - | Sessions that fell back to normal routing |
+| `loxilb_pd_kv_blocks_total` | Counter | `endpoint` | KV cache blocks per P/D endpoint |
+
+### SockProxy L7 HTTP Metrics ⭐ NEW
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `proxy_http_responses_total` | Counter | - | Total HTTP responses proxied |
+| `proxy_http_responses_by_status_total` | Counter | `status_class` | Responses grouped by status class (2xx/4xx/5xx) |
+| `proxy_http_ttfb_seconds` | Histogram | - | Time-to-first-byte latency distribution |
+| `proxy_http2_active_sessions` | Gauge | - | Current active HTTP/2 sessions |
+| `proxy_http2_connection_reuse_avg` | Gauge | - | Average streams per HTTP/2 connection |
+| `proxy_session_affinity_hit_rate` | Gauge | - | Conversation routing hit rate (target >0.95) |
+| `proxy_conversation_sessions` | Gauge | - | Active conversation session mappings |
+| `proxy_pd_kv_params_overflow_total` | Counter | - | P/D KV parameter overflow events |
+
+### Internal Observability Diagnostics ⭐ NEW
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `loxilb_skipped_closed_connections_total` | Counter | Connections skipped because they were already closed |
+| `loxilb_skipped_new_flow_cycles_total` | Counter | New-flow processing cycles skipped under load |
+| `loxilb_metrics_dropped_backpressure_total` | Counter | Metric events dropped due to backpressure |
+| `loxilb_counter_reset_events_total` | Counter | Counter reset events (for delta calculations) |
+| `loxilb_closed_connections_processed_total` | Counter | Gracefully processed closed connections |
+| `loxilb_five_tuple_reuse_detected_total` | Counter | 5-tuple reuse events detected |
 
 ### Query Examples
 
@@ -987,6 +1162,6 @@ For issues or questions:
 
 ---
 
-**Dashboard Quality**: 98.5% ✅  
+**Dashboard Quality**: 99.5% ✅  
 **Production Status**: READY ✅  
-**Last Updated**: 2025-12-09
+**Last Updated**: 2026-03-17
