@@ -1,0 +1,42 @@
+groups:
+  - name: loxilb_ai_rules
+    interval: 30s
+    rules:
+      - record: job:loxilb_ai_request_duration_seconds:p50_5m
+        expr: histogram_quantile(0.50, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_request_duration_seconds:p90_5m
+        expr: histogram_quantile(0.90, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_request_duration_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_request_duration_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_pd_prefill_duration_seconds:p50_5m
+        expr: histogram_quantile(0.50, sum(rate(loxilb_ai_pd_prefill_duration_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_pd_prefill_duration_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_pd_prefill_duration_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_pd_decode_ttft_seconds:p50_5m
+        expr: histogram_quantile(0.50, sum(rate(loxilb_ai_pd_decode_ttft_seconds_bucket[5m])) by (model, le))
+      - record: job:loxilb_ai_pd_decode_ttft_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_pd_decode_ttft_seconds_bucket[5m])) by (model, le))
+      - record: job:proxy_http_ttfb_seconds:p50_5m
+        expr: histogram_quantile(0.50, rate(proxy_http_ttfb_seconds_bucket[5m]))
+      - record: job:proxy_http_ttfb_seconds:p90_5m
+        expr: histogram_quantile(0.90, rate(proxy_http_ttfb_seconds_bucket[5m]))
+      - record: job:proxy_http_ttfb_seconds:p99_5m
+        expr: histogram_quantile(0.99, rate(proxy_http_ttfb_seconds_bucket[5m]))
+      - record: job:loxilb_ai_pd_prefill_duration_per_ep_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_pd_prefill_duration_per_ep_seconds_bucket[5m])) by (model, endpoint_ip, le))
+      - record: job:loxilb_ai_pd_decode_duration_per_ep_seconds:p99_5m
+        expr: histogram_quantile(0.99, sum(rate(loxilb_ai_pd_decode_duration_per_ep_seconds_bucket[5m])) by (model, endpoint_ip, le))
+      - record: job:loxilb_opa_sync_duration_seconds:p99_5m
+        expr: histogram_quantile(0.99, rate(loxilb_opa_sync_duration_seconds_bucket[5m]))
+
+  - name: loxilb_ai_aggregations
+    interval: 30s
+    rules:
+      - record: job:loxilb_ai_requests_total:rate1m
+        expr: sum(rate(loxilb_ai_requests_total[1m])) by (model, status)
+      - record: job:loxilb_ai_tokens_total:rate1m
+        expr: sum(rate(loxilb_ai_tokens_total[1m])) by (model, direction)
+      - record: job:loxilb_ai_rate_limit_hits_total:rate5m
+        expr: sum(rate(loxilb_ai_rate_limit_hits_total[5m])) by (tenant, reason)
+      - record: job:loxilb_opa_watcher_sync_failure_rate:rate5m
+        expr: rate(loxilb_opa_watcher_syncs_total{status="failure"}[5m])

@@ -6,3 +6,10 @@ metadata:
   namespace: monitoring
 binaryData:
   loxilb.json: {{ .Files.Get "grafana-loxilb-dashboard.json" | b64enc }}
+  loxilb-simple.json: {{ .Files.Get "grafana-dashboards-simple2.json" | b64enc }}
+  loxilb-ai-gateway.json: {{ .Files.Get "loxilb-ai-gateway-dashboard.json" | b64enc }}
+  loxilb-observability.json: {{ .Files.Get "loxilb-observability-dashboard.json" | b64enc }}
+  sockproxy-ai-workload.json: {{ .Files.Get "sockproxy-ai-workload-dashboard.json" | b64enc }}
+  sockproxy-connections.json: {{ .Files.Get "sockproxy-connections-dashboard.json" | b64enc }}
+  sockproxy-debugging.json: {{ .Files.Get "sockproxy-debugging-dashboard.json" | b64enc }}
+  sockproxy-streaming.json: {{ .Files.Get "sockproxy-streaming-dashboard.json" | b64enc }}
